@@ -10,17 +10,21 @@ fn main() {
 
     let remote = repo
         .find_remote("origin")
-        // TODO convert "git@github.com:benmkw/githome.git" to https...
-        // or better call another more appropriate method which gives better results
         .or_else(|_| repo.find_remote("gh"))
         .expect("no remote named origin or gh");
 
     if let Some(url) = remote.url() {
-        println!("{:?}", url);
+        let mut url = url.to_string();
+        // convert "git@github.com:benmkw/githome.git" to https
+        // a crate would be better here
+        if let Some(i) = url.find("@") {
+            let (_, end) = url.split_at(i + 1);
+            url = format!("https://{}", end.replace(":", "/")).to_string();
+        }
 
         std::process::Command::new("sh")
             .arg("-c")
-            .arg("open ".to_string() + url)
+            .arg("open ".to_string() + &url)
             .output()
             .expect("failed to execute process");
     }
