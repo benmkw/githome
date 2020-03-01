@@ -47,6 +47,7 @@ name = "githome"
 version = "0.2.0"
 dependencies = [
  "git2",
+ "url",
 ]
 
 [[package]]
