@@ -1,9 +1,6 @@
-use git2::Repository;
-use url::Url;
-
 fn main() {
     // https://docs.rs/git2/0.9.2/git2/struct.Repository.html#method.discover
-    let repo = match Repository::discover("./") {
+    let repo = match ::git2::Repository::discover("./") {
         Ok(repo) => repo,
         Err(e) => panic!("failed to open: {}", e),
     };
@@ -30,15 +27,11 @@ fn main() {
             let ssh_like_url = final_url.replace(":", "/");
             let ssh_url = format!("ssh://{}", ssh_like_url);
 
-            let parsed = Url::parse(&ssh_url).unwrap();
+            let parsed = ::url::Url::parse(&ssh_url).unwrap();
 
             final_url = format!("https://{}{}", &parsed.host().unwrap(), &parsed.path());
         }
 
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg("open ".to_string() + &final_url)
-            .output()
-            .expect("failed to execute process");
+        ::opener::open(&final_url).unwrap();
     }
 }
