@@ -10,7 +10,7 @@ fn main() {
         .or_else(|_| repo.find_remote("github"))
         .or_else(|_| repo.find_remote("gitlab"))
         .or_else(|_| repo.find_remote("gh"))
-        .expect("no remote named origin or gh");
+        .expect("no remote named origin, github, gitlab or gh found");
 
     if let Some(git_url) = remote.url() {
         let mut final_url = git_url.to_string();
