@@ -1,15 +1,17 @@
 [package]
 name = "githome"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Benedikt Mandelkow <benedikt.mandelkow@rwth-aachen.de>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [dependencies]
-git2 = "*"
-url = "*"
-opener ="*"
+opener = "0.5.0"
+git-repository = "0.29"
+xflags = "0.3.1"
 
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
+strip = true

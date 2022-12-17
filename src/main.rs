@@ -1,37 +1,64 @@
+use git_repository::bstr::ByteSlice;
+
 fn main() {
-    // https://docs.rs/git2/0.9.2/git2/struct.Repository.html#method.discover
-    let repo = match ::git2::Repository::discover("./") {
-        Ok(repo) => repo,
-        Err(e) => panic!("failed to open: {}", e),
+    let flags = xflags::parse_or_exit! {
+        /// Open the issue tracker (github and gitlab only)
+        optional -i,--issues
+        /// Open the pull request page (github only)
+        optional -p,--pulls
+        /// Open the wiki page (github only)
+        optional -w,--wiki
+        /// Open the contributors overview (github only)
+        optional -c,--contributors
     };
 
-    let remote = repo
-        .find_remote("origin")
-        .or_else(|_| repo.find_remote("github"))
-        .or_else(|_| repo.find_remote("gitlab"))
-        .or_else(|_| repo.find_remote("gh"))
-        .expect("no remote named origin, github, gitlab or gh found");
+    let mut path = std::env::current_dir().unwrap();
 
-    if let Some(git_url) = remote.url() {
-        let mut final_url = git_url.to_string();
+    while {
+        if let Ok(repo) = git_repository::open(&path) {
+            let remote = repo
+                .find_default_remote(git_repository::remote::Direction::Fetch)
+                .unwrap()
+                .unwrap();
 
-        // convert
-        // git@github.com:benmkw/githome.git to
-        // https://github.com/benmkw/githome.git
-        if !git_url.contains("https://") {
-            // git urls are scp-like urls and do not conform to URL RFC
-            // see https://github.com/servo/rust-url/issues/220
+            let mut url = remote
+                .url(git_repository::remote::Direction::Fetch)
+                .unwrap()
+                .clone();
 
-            // maybe would be better to only replace the last ":"
-            // but unicode indexing, yagni
-            let ssh_like_url = final_url.replace(":", "/");
-            let ssh_url = format!("ssh://{}", ssh_like_url);
+            url.canonicalize().unwrap();
 
-            let parsed = ::url::Url::parse(&ssh_url).unwrap();
+            let site = if flags.issues {
+                "/issues"
+            } else if flags.pulls {
+                "/pulls"
+            } else if flags.wiki {
+                "/wiki"
+            } else if flags.contributors {
+                "/graphs/contributors"
+            } else {
+                ""
+            };
 
-            final_url = format!("https://{}{}", &parsed.host().unwrap(), &parsed.path());
+            let https_url = format!(
+                "https://{host}{path}{site}",
+                host = url.host().unwrap(),
+                path = match url.path.to_str_lossy().strip_suffix(".git") {
+                    None => url.path.to_str_lossy(),
+                    Some(s) => s.into(),
+                }
+            );
+
+            println!("cloned using {scheme}", scheme = url.scheme);
+            opener::open(https_url).unwrap();
+            return;
         }
 
-        ::opener::open(&final_url).unwrap();
-    }
+        if let Some(new_path) = path.parent() {
+            path = new_path.to_path_buf();
+            true
+        } else {
+            false
+        }
+    } {}
 }

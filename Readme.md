@@ -8,3 +8,21 @@ It's basically the same as `open (git config --get remote.origin.url)` but it tr
 Git urls do not conform to the URL Standard. (see [rust-url](https://github.com/servo/rust-url/issues?q=is%3Aissue+ssh+))
 
 I use it all them time and think you might like it or create something similar adapted to your needs.
+
+```
+OPTIONS:
+    -i, --issues
+      Open the issue tracker (github and gitlab only)
+
+    -p, --pulls
+      Open the pull request page (github only)
+
+    -w, --wiki
+      Open the wiki page (github only)
+
+    -c, --contributors
+      Open the contributors overview (github only)
+
+    -h, --help
+      Prints help information.
+```
