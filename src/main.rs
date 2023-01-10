@@ -12,53 +12,49 @@ fn main() {
         optional -c,--contributors
     };
 
-    let mut path = std::env::current_dir().unwrap();
+    let (path, trust) = git_discover::upwards(std::env::current_dir().unwrap()).unwrap();
+    assert_eq!(
+        trust,
+        git_repository::sec::Trust::Full,
+        "this git repository at {path:?} seems suspicious"
+    );
 
-    while {
-        if let Ok(repo) = git_repository::open(&path) {
-            let remote = repo
-                .find_default_remote(git_repository::remote::Direction::Fetch)
-                .unwrap()
-                .unwrap();
+    let repo = git_repository::open(path.as_ref())
+        .expect("git discover said a git repo would be here, but it isn't?");
 
-            let mut url = remote
-                .url(git_repository::remote::Direction::Fetch)
-                .unwrap()
-                .clone();
+    let remote = repo
+        .find_default_remote(git_repository::remote::Direction::Fetch)
+        .unwrap()
+        .unwrap();
 
-            url.canonicalize().unwrap();
+    let mut url = remote
+        .url(git_repository::remote::Direction::Fetch)
+        .unwrap()
+        .clone();
 
-            let site = if flags.issues {
-                "/issues"
-            } else if flags.pulls {
-                "/pulls"
-            } else if flags.wiki {
-                "/wiki"
-            } else if flags.contributors {
-                "/graphs/contributors"
-            } else {
-                ""
-            };
+    url.canonicalize().unwrap();
 
-            let https_url = format!(
-                "https://{host}{path}{site}",
-                host = url.host().unwrap(),
-                path = match url.path.to_str_lossy().strip_suffix(".git") {
-                    None => url.path.to_str_lossy(),
-                    Some(s) => s.into(),
-                }
-            );
+    let site = if flags.issues {
+        "/issues"
+    } else if flags.pulls {
+        "/pulls"
+    } else if flags.wiki {
+        "/wiki"
+    } else if flags.contributors {
+        "/graphs/contributors"
+    } else {
+        ""
+    };
 
-            println!("cloned using {scheme}", scheme = url.scheme);
-            opener::open(https_url).unwrap();
-            return;
+    let https_url = format!(
+        "https://{host}{path}{site}",
+        host = url.host().unwrap(),
+        path = match url.path.to_str_lossy().strip_suffix(".git") {
+            None => url.path.to_str_lossy(),
+            Some(s) => format!("/{s}").into(),
         }
+    );
 
-        if let Some(new_path) = path.parent() {
-            path = new_path.to_path_buf();
-            true
-        } else {
-            false
-        }
-    } {}
+    println!("cloned using {scheme}", scheme = url.scheme);
+    opener::open(https_url).unwrap();
 }
