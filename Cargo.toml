@@ -6,9 +6,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-opener = "0.5.0"
-git-repository = "0.33"
-git-discover = "0.12.1"
+opener = "0.5.2"
+git-repository = { version = "0.35", default-features = false }
+git-discover = { version = "0.13.0", default-features = false }
 xflags = "0.3.1"
 
 [profile.release]
