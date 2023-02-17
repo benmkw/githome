@@ -7,8 +7,8 @@ publish = false
 
 [dependencies]
 opener = "0.5.2"
-git-repository = { version = "0.35", default-features = false }
-git-discover = { version = "0.13.0", default-features = false }
+gix = { version = "0.39", default-features = false }
+gix-discover = { version = "0.15.0", default-features = false }
 xflags = "0.3.1"
 
 [profile.release]

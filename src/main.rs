@@ -1,4 +1,4 @@
-use git_repository::bstr::ByteSlice;
+use gix::bstr::ByteSlice;
 
 fn main() {
     let flags = xflags::parse_or_exit! {
@@ -12,25 +12,22 @@ fn main() {
         optional -c,--contributors
     };
 
-    let (path, trust) = git_discover::upwards(std::env::current_dir().unwrap()).unwrap();
+    let (path, trust) = gix_discover::upwards(std::env::current_dir().unwrap()).unwrap();
     assert_eq!(
         trust,
-        git_repository::sec::Trust::Full,
+        gix::sec::Trust::Full,
         "this git repository at {path:?} seems suspicious"
     );
 
-    let repo = git_repository::open(path.as_ref())
+    let repo = gix::open(path.as_ref())
         .expect("git discover said a git repo would be here, but it isn't?");
 
     let remote = repo
-        .find_default_remote(git_repository::remote::Direction::Fetch)
+        .find_default_remote(gix::remote::Direction::Fetch)
         .unwrap()
         .unwrap();
 
-    let mut url = remote
-        .url(git_repository::remote::Direction::Fetch)
-        .unwrap()
-        .clone();
+    let mut url = remote.url(gix::remote::Direction::Fetch).unwrap().clone();
 
     url.canonicalize().unwrap();
 
