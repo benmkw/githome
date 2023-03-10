@@ -12,7 +12,7 @@ fn main() {
         optional -c,--contributors
     };
 
-    let (path, trust) = gix_discover::upwards(std::env::current_dir().unwrap()).unwrap();
+    let (path, trust) = gix_discover::upwards(&std::env::current_dir().unwrap()).unwrap();
     assert_eq!(
         trust,
         gix::sec::Trust::Full,
@@ -27,9 +27,7 @@ fn main() {
         .unwrap()
         .unwrap();
 
-    let mut url = remote.url(gix::remote::Direction::Fetch).unwrap().clone();
-
-    url.canonicalize().unwrap();
+    let url = remote.url(gix::remote::Direction::Fetch).unwrap().clone();
 
     let site = if flags.issues {
         "/issues"
@@ -43,11 +41,12 @@ fn main() {
         ""
     };
 
+    let path = url.path_argument_safe().unwrap().to_str_lossy();
     let https_url = format!(
         "https://{host}{path}{site}",
-        host = url.host().unwrap(),
-        path = match url.path.to_str_lossy().strip_suffix(".git") {
-            None => url.path.to_str_lossy(),
+        host = url.host_argument_safe().unwrap(),
+        path = match path.strip_suffix(".git") {
+            None => path,
             Some(s) => format!("/{s}").into(),
         }
     );

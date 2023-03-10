@@ -6,13 +6,13 @@ edition = "2021"
 publish = false
 
 [dependencies]
-opener = "0.5.2"
-gix = { version = "0.39", default-features = false }
-gix-discover = { version = "0.15.0", default-features = false }
-xflags = "0.3.1"
+gix = { version = "0.58", default-features = false }
+gix-discover = { version = "0.29.0", default-features = false }
+opener = "0.6.1"
+xflags = "0.3.2"
 
 [profile.release]
-lto = true
 codegen-units = 1
+lto = true
 panic = "abort"
 strip = true
